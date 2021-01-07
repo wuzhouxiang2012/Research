@@ -48,7 +48,7 @@ class PolicyGradient(parl.Algorithm):
             dim=1)
         cost = log_prob * reward
         cost = layers.reduce_mean(cost)
-
+        print('====loss', cost)
         optimizer = fluid.optimizer.Adam(self.lr)
         optimizer.minimize(cost)
         return cost
