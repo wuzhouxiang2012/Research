@@ -2,11 +2,12 @@ import sys
 import os
 import torch
 import numpy as np
-
+from torch.utils.tensorboard import SummaryWriter
 
 sys.path.append("/Users/Bob/Documents/GitHub/Research/RL_network_operator/project")
 
 from network_env import Environment
+from evaluate import Evaluation
 from distribution import Distribution
 from request import Request
 
@@ -36,7 +37,7 @@ def run_episode(env, agent):
 
 
 # 评估 agent, 跑 5 个episode，总reward求平均
-def evaluate(env, agent, render=False):
+def evaluate(env, agent):
     eval_reward = []
     num_accept = []
     for i in range(5):
@@ -76,10 +77,7 @@ def main():
         distribution_list=[dist1,dist2,dist3], \
         mu_list=[1,2,3], lambda_list=[3,2,1],\
         num_of_each_type_distribution_list=[300,300,300])
-    # env = gym.make('CartPole-v0')
-    # env = env.unwrapped # Cancel the minimum score limit
-    # obs_dim = env.observation_space.shape[0]
-    # act_dim = env.action_space.n
+    evaluation = Evaluation()
     obs_dim = 6
     act_dim = 2
     # logger.info('obs_dim {}, act_dim {}'.format(obs_dim, act_dim))
@@ -90,26 +88,42 @@ def main():
     agent = PGTorchAgent(alg, obs_dim=obs_dim, act_dim=act_dim)
 
     # 加载模型
-    # if os.path.exists('./policy_grad_model.ckpt'):
-    #     agent.restore('./policy_grad_model.ckpt')
-        # run_episode(env, agent, train_or_test='test', render=True)
-        # exit()
+    if os.path.exists('./pg_torch_model'):
+        agent.restore('./pg_torch_model')
+    writer = SummaryWriter()
 
     for i in range(1000):
         obs_list, action_list, reward_list = run_episode(env, agent)
+        writer.add_scalars('Reward/train', {'train_reward':sum(reward_list)/len(reward_list), \
+                'reject when full': evaluation.reject_when_full_avg_reward, \
+                    'always accept': evaluation.always_accept_avg_reward,\
+                        'always reject': evaluation.always_reject_avg_reward}, i)
+        # writer.add_scalar('Reward/train', evaluation.always_reject_avg_reward, i)
+        
         if i % 10 == 0:
             # logger.info("Episode {}, Reward Sum {}.".format(
             #     i, sum(reward_list)))
-            print("Episode {}, Reward Sum {}.".format(i, sum(reward_list)))
+            print("Episode {}, Reward Sum {}.".format(i, sum(reward_list)/len(reward_list)))
         batch_obs = torch.from_numpy(np.array(obs_list))
+
         batch_action = torch.from_numpy(np.array(action_list))
         batch_reward = torch.from_numpy(calc_reward_to_go(reward_list, gamma=0.9))
 
-        agent.learn(batch_obs, batch_action, batch_reward)
+        loss = agent.learn(batch_obs, batch_action, batch_reward)
+        writer.add_scalar('Loss/train', loss, i)
         if (i + 1) % 100 == 0:
-            total_reward, num_accept = evaluate(env, agent, render=True)
-            print('Test reward: {}, num of accept: {}'.format(total_reward, num_accept))
+            avg_reward, avg_acc_rate = evaluation.evaluate(agent)
+            writer.add_scalars('reward Test', {'test reward': avg_reward, \
+                'reject when full': evaluation.reject_when_full_avg_reward, \
+                    'always accept': evaluation.always_accept_avg_reward,\
+                        'always reject': evaluation.always_reject_avg_reward}, i)
+            writer.add_scalars('accept rate Test', {'test rate': avg_acc_rate, \
+                'reject when full': evaluation.reject_when_full_avg_acc_rate, \
+                    'always accept': evaluation.always_accept_avg_acc_rate,\
+                        'always reject': evaluation.always_reject_avg_acc_rate}, i)
+            print('avg_reward', avg_reward, 'avg_acc_rate', avg_acc_rate, 'base ', evaluation.reject_when_full_avg_reward)
 
+    writer.close()
     # save the parameters to ./pg_torch_model
     agent.save('./pg_torch_model')
 

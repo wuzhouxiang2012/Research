@@ -17,21 +17,9 @@
 import os
 import gym
 import numpy as np
-import parl
-from parl.utils import logger  # 日志打印工具
-
-import sys
-sys.path.append("/Users/Bob/Documents/GitHub/Research/RL_network_operator/project")
-from network_env import Environment
-from distribution import Distribution
-from request import Request
-
-
-from model import Model
-from algorithm import DQN  # from parl.algorithms import DQN  # parl >= 1.3.1
-from agent import Agent
-
-from replay_memory import ReplayMemory
+import torch
+from torch import nn
+import torch.nn.functional as F
 
 LEARN_FREQ = 5  # 训练频率，不需要每一个step都learn，攒一些新增经验后再learn，提高效率
 MEMORY_SIZE = 20000  # replay memory的大小，越大越占用内存
@@ -49,8 +37,7 @@ def run_episode(env, agent, rpm):
     while True:
         step += 1
         action = agent.sample(obs)  # 采样动作，所有动作都有概率被尝试到
-        # next_obs, reward, done, _ = env.step(action)
-        next_obs, reward, done = env.step(action)
+        next_obs, reward, done, _ = env.step(action)
         rpm.append((obs, action, reward, next_obs, done))
 
         # train model
@@ -93,22 +80,11 @@ def evaluate(env, agent, render=False):
 
 
 def main():
-    dist1 = Distribution(id=0, vals=[2], probs=[1])
-    dist2 = Distribution(id=1, vals=[5], probs=[1])
-    dist3 = Distribution(id=2, vals=[2,8], probs=[0.5,0.5])
-
-    env = Environment(total_bandwidth = 10,\
-        distribution_list=[dist1,dist2,dist3], \
-        mu_list=[1,2,3], lambda_list=[3,2,1],\
-        num_of_each_type_distribution_list=[300,300,300])
-
-    # env = gym.make(
-    #     'CartPole-v0'
-    # )  # CartPole-v0: expected reward > 180                MountainCar-v0 : expected reward > -120
-    # action_dim = env.action_space.n  # CartPole-v0: 2
-    # obs_shape = env.observation_space.shape  # CartPole-v0: (4,)
-    # obs_shape = 6
-    action_dim = 2
+    env = gym.make(
+        'CartPole-v0'
+    )  # CartPole-v0: expected reward > 180                MountainCar-v0 : expected reward > -120
+    action_dim = env.action_space.n  # CartPole-v0: 2
+    obs_shape = env.observation_space.shape  # CartPole-v0: (4,)
     rpm = ReplayMemory(MEMORY_SIZE)  # DQN的经验回放池
 
     # 根据parl框架构建agent
