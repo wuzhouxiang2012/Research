@@ -125,7 +125,10 @@ def train(lr=0.001, num_iter=1000, num_episode=10, num_epoch=10, batch_size=32,\
             print('itern:{}  Test reward:{}'.format(iter, eval_reward))
         agent.save(model_path)
 if __name__ == '__main__':
-    train(show_baseline=True)
+    train(lr=0.001, num_iter=1000, num_episode=10, num_epoch=10, batch_size=128,\
+    evaluate_env_list_path='env_list_set1', \
+    train_total_time=60, show_baseline=True, \
+    continue_train=False, model_path = 'best_actor')
 
 
 
