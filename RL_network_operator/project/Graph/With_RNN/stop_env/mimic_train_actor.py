@@ -123,6 +123,7 @@ def train(lr=0.001, num_iter=1000, num_episode=10, num_epoch=10, batch_size=32,\
         if iter%10 == 0:
             eval_reward= evaluate(evaluate_env_list_path, agent, render=False)  # render=True 查看显示效果
             print('itern:{}  Test reward:{}'.format(iter, eval_reward))
+            agent.save(model_path)
         agent.save(model_path)
 if __name__ == '__main__':
     train(lr=0.001, num_iter=1000, num_episode=10, num_epoch=10, batch_size=128,\
