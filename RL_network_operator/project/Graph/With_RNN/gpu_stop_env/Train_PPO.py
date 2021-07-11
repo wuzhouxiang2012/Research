@@ -187,6 +187,10 @@ def train(gamma = 0.9, base_line=0.5, actor_lr=0.001, \
     
     if continue_train:
         agent.load(actor_path, encoder_path)
+    for name, param in agent.encoder.named_parameters():
+        if param.requires_grad:
+            print (name)
+    exit()
     for iter in range(num_iter):
         #2.1  Using theta k to interact with the env
         # to collect {s_t, a_t} and compute advantage
@@ -233,7 +237,7 @@ if __name__ == '__main__':
     encoder_lr = 0.0001, epsilon=0.1, \
     num_iter=1000, num_episode=10, num_epoch=10, batch_size=128,\
     evaluate_env_list_path='env_list_set1',\
-    train_total_time=600, show_baseline=True,\
+    train_total_time=600, show_baseline=False,\
     update_target_steps=200, encoder_path = 'ppo_encoder', \
     actor_path='ppo_actor', continue_train=False, \
     save_train=True)
