@@ -40,11 +40,13 @@ class Agent():
     def sample(self, obs):
         # obs = torch.from_numpy(obs.astype(np.float32)).view(1,-1)
         # choose action based on prob
+        obs = [obs,]
         action = np.random.choice(range(self.action_dim), p=self.target_actor(obs).detach().numpy().reshape(-1,))  
         return action
 
     def predict(self, obs):  # choose best action
         # obs = torch.from_numpy(obs.astype(np.float32)).view(1,-1)
+        obs = [obs,]
         return self.actor(obs).argmax(dim=1).item()
 
     def sync_target(self):
@@ -64,8 +66,8 @@ class Agent():
         target_choosed_action_prob = (target_action_distribution*true_action_distribution).sum(1,keepdim=True)
         J = (pred_choosed_action_prob/target_choosed_action_prob*batch_adv.view(-1,1))
         J_clip = (torch.clamp(pred_choosed_action_prob/target_choosed_action_prob, 1-self.epsilon, 1+self.epsilon)*batch_adv.view(-1,1))
-        self.optimizer_actor.zero_grad()
         loss = -1.0*(torch.cat((J, J_clip), dim=1).min(dim=1)[0]).mean()
+        self.optimizer_actor.zero_grad()
         loss.backward()
         self.optimizer_actor.step()
         return loss
@@ -93,27 +95,8 @@ def run_episode(env, agent):
     return obs_list, action_list, reward_list
 
 
-
-class PPODataset(Dataset):
-    def __init__(self, obs_list, action_list, advantage_list):
-        # self.obs_list = torch.from_numpy(np.array(obs_list).astype(np.float32))
-        self._obs_list = obs_list
-        self.action_list = action_list
-        self.advantage_list = advantage_list
-
-    def __getitem__(self, index):
-        return self.obs_list[index,:], self.action_list[index], self.advantage_list[index]
-    
-    def __len__(self):
-        return self.obs_list.shape[0]
-
-
-
-
-
-
 def train(gamma = 0.9, base_line=0.5, lr=0.001, epsilon=0.1, \
-    num_iter=1000, num_episode=10, num_epoch=10, \
+    num_iter=1000, num_episode=10, num_epoch=10, batch_size=128,\
     evaluate_env_list_path='env_list_set1',\
     train_total_time=600, show_baseline=False):
     if show_baseline:
@@ -125,11 +108,10 @@ def train(gamma = 0.9, base_line=0.5, lr=0.001, epsilon=0.1, \
     request_dim = 17
     obs_dim_2 = 10
     obs_dim = obs_dim_1+obs_dim_2*7
-    encoder = Encoder(input_size=request_dim, output_size=obs_dim_2, \
-        use_rnn=True, use_gru=False, use_lstm=False)
-    PPOactor = Actor(encoder, obs_size=obs_dim, action_size=action_dim)
+    encoder = Encoder(input_size=request_dim, output_size=obs_dim_2)
+    actor = Actor(encoder, obs_size=obs_dim, action_size=action_dim)
     agent = Agent(
-        actor=PPOactor,
+        actor=actor,
         obs_dim = obs_dim,
         action_dim=action_dim,
         lr=lr,
@@ -160,11 +142,19 @@ def train(gamma = 0.9, base_line=0.5, lr=0.001, epsilon=0.1, \
             num_examples = len(all_obs) 
             indices = list(range(num_examples)) 
             random.shuffle(indices)
-            for i in range(num_examples):
-                batch_obs = all_obs[i]
-                batch_action = torch.tensor([all_action[i],], dtype=torch.int64)
-                batch_adv = torch.tensor([all_advantage[i],], dtype=torch.float32)
             
+            for i in range(0, num_examples, batch_size):
+                
+                if i+batch_size<len(all_obs):
+                    # print(indice[i:i+batch_size])
+                    batch_obs = [all_obs[x] for x in indices[i:i+batch_size]]
+                    batch_action = torch.tensor([all_action[x] for x in indices[i:i+batch_size]])
+                    batch_adv = torch.tensor([all_advantage[x] for x in indices[i:i+batch_size]])
+                else:
+                    batch_obs = [all_obs[x] for x in indices[i:num_examples]]
+                    batch_action = torch.tensor([all_action[x] for x in indices[i:num_examples]])
+                    batch_adv = torch.tensor([all_advantage[x] for x in indices[i:num_examples]])
+
                 agent.learn(batch_obs, batch_action, batch_adv)
         if iter%10 == 0:
             eval_reward= evaluate(evaluate_env_list_path, agent, render=False)  # render=True 查看显示效果
