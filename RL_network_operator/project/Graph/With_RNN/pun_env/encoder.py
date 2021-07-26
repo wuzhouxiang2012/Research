@@ -26,7 +26,7 @@ class Encoder(nn.Module):
         # Set initial hidden states (and cell states for LSTM)
         h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
         if self.use_lstm:
-            c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device) 
+            c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
         # Forward propagate RNN
         if self.use_rnn:
             out, _ = self.rnn(x, h0)  

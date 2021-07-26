@@ -4,6 +4,7 @@ from typing import Dict, List
 from RequestType import RequestType
 from Env_4_Test import TestEnvironment
 from RequestType import RequestType
+from Util import evaluate_reject_when_full
 '''
 id:int, source:int, sink:int, \
 arrival_rate:float, service_rate:float, \
@@ -89,6 +90,7 @@ def produce_env(total_time=600):
 if __name__ == '__main__':
     from Util import reject_when_full
     produce_test_env_list(10, 'env_list_set1')
+    evaluate_reject_when_full('env_list_set1')
     # for _ in range(10):
     #     env = produce_env(600)
     #     print(reject_when_full(env))
