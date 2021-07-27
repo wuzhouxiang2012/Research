@@ -113,6 +113,33 @@ class TestEnvironment(gym.Env):
         self.elastic_hist_dist[id] = [x/total_service_time \
             for x in self.elastic_hist_sum[id]]
         
+    def update_elastic_history(self):
+        id = self.current_request.type.id
+        # update accumulated sum
+        if self.current_request.isScale:
+            self.elastic_hist_sum[id][1] \
+                += self.current_request.service_time
+        else:
+            self.elastic_hist_sum[id][0] \
+                += self.current_request.service_time
+        # update buffer list
+        if len(self.elastic_hist_list[id])> \
+            self.elastic_history_buffer_length:
+            old_request = self.elastic_hist_list[id].pop(0)
+            if old_request.isScale:
+                self.elastic_hist_sum[old_request.type.id][1] -= \
+                    old_request.service_time
+            else:
+                self.elastic_hist_sum[old_request.type.id][0] -= \
+                    old_request.service_time
+
+        self.elastic_hist_list[id].append(self.current_request)
+
+        # update distribution
+        total_service_time = sum(self.elastic_hist_sum[id])
+        self.elastic_hist_dist[id] = [x/total_service_time \
+            for x in self.elastic_hist_sum[id]]
+        
     def produce_on_request_type(self,request_type):
         request_list = []
         # produce arrival time list
@@ -148,6 +175,8 @@ class TestEnvironment(gym.Env):
                         # service time for scale request
                         scale_service_time = \
                             np.random.exponential(request_type.switch_rate_list[1])
+                        if scale_service_time+prev_sum>service_time:
+                            scale_service_time = service_time-prev_sum
                         request_list.append(Request(id,request_type.source, \
                             request_type.sink, \
                             arrival_time+prev_sum, scale_bw, \
@@ -157,10 +186,12 @@ class TestEnvironment(gym.Env):
                     else:
                         lower_bw_service_time = \
                             np.random.exponential(request_type.switch_rate_list[0])
+                        if lower_bw_service_time+prev_sum>service_time:
+                            lower_bw_service_time = service_time-prev_sum
                         prev_sum += lower_bw_service_time
                         current_bandwidth = request_type.bandwidth_list[1]
         return request_list
-
+        
     def make_edge_on_which_path_dict(self):
         self.edge_on_which_path = {}
         for edge in self.edge_sequence:

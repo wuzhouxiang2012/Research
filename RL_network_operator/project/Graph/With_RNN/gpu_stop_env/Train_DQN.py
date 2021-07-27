@@ -193,7 +193,8 @@ def run_episode(env, agent, rpm, memory_warmup_size, learn_freq, batch_size):
 
 
 
-def train(show_baseline=False, continue_train=False, learn_freq= 5, memory_size = 20000, \
+def train(show_baseline=False, continue_train=False, \
+    learn_freq= 5, memory_size = 20000, total_time=20,\
     memory_warmup_size = 2000, batch_size = 32, critic_lr = 0.001, \
     encoder_lr=0.0001, gamma = 0.9, alpha = 0.9, max_episode=1000, \
     critic_path='dqn_critic', encoder_path='dqn_encoder'):
@@ -202,7 +203,7 @@ def train(show_baseline=False, continue_train=False, learn_freq= 5, memory_size 
     if show_baseline:
         print(evaluate_reject_when_full(evaluate_env_list_path))
         print(evaluate_totally_random(evaluate_env_list_path))
-    env = produce_env()
+    env = produce_env(total_time=total_time)
     action_dim = 4  
     obs_dim_1 = 45  
     request_dim = 17
@@ -243,7 +244,8 @@ def train(show_baseline=False, continue_train=False, learn_freq= 5, memory_size 
     agent.save(critic_path=critic_path, encoder_path=encoder_path)
 
 if __name__ == '__main__':
-    train(show_baseline=False, continue_train=False, learn_freq= 5, memory_size = 20000, \
+    train(show_baseline=False, continue_train=False, \
+    learn_freq= 5, memory_size = 20000, total_time=20,\
     memory_warmup_size = 2000, batch_size = 32, critic_lr = 0.001, \
     encoder_lr=0.0001, gamma = 0.9, alpha = 0.9, max_episode=1000, \
     critic_path='dqn_critic', encoder_path='dqn_encoder')

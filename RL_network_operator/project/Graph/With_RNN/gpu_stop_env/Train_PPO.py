@@ -81,6 +81,9 @@ class Agent():
 
 
     def learn(self, batch_obs, batch_action, batch_adv):
+        self.optimizer_actor.zero_grad()
+        self.optimizer_encoder.zero_grad()
+        
         # update target model
         if self.global_step % self.update_target_steps == 0:
             self.sync_target()
@@ -113,8 +116,7 @@ class Agent():
         J = (pred_choosed_action_prob/target_choosed_action_prob*batch_adv.view(-1,1))
         J_clip = (torch.clamp(pred_choosed_action_prob/target_choosed_action_prob, 1-self.epsilon, 1+self.epsilon)*batch_adv.view(-1,1))
         loss = -1.0*(torch.cat((J, J_clip), dim=1).min(dim=1)[0]).mean()
-        self.optimizer_actor.zero_grad()
-        self.optimizer_encoder.zero_grad()
+
         loss.backward()
         self.optimizer_actor.step()
         self.optimizer_encoder.step()
@@ -187,10 +189,8 @@ def train(gamma = 0.9, base_line=0.5, actor_lr=0.001, \
     
     if continue_train:
         agent.load(actor_path, encoder_path)
-    for name, param in agent.encoder.named_parameters():
-        if param.requires_grad:
-            print (name)
-    exit()
+
+    
     for iter in range(num_iter):
         #2.1  Using theta k to interact with the env
         # to collect {s_t, a_t} and compute advantage
@@ -237,7 +237,7 @@ if __name__ == '__main__':
     encoder_lr = 0.0001, epsilon=0.1, \
     num_iter=1000, num_episode=10, num_epoch=10, batch_size=128,\
     evaluate_env_list_path='env_list_set1',\
-    train_total_time=600, show_baseline=False,\
+    train_total_time=20, show_baseline=True,\
     update_target_steps=200, encoder_path = 'ppo_encoder', \
-    actor_path='ppo_actor', continue_train=False, \
+    actor_path='ppo_actor', continue_train=True, \
     save_train=True)

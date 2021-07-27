@@ -3,7 +3,7 @@ import torch
 
 class Encoder(nn.Module):
     def __init__(self, input_size, output_size, hidden_size=128, num_layers=2, \
-        use_rnn=True, use_gru=True, use_lstm=True):
+        use_rnn=False, use_gru=True, use_lstm=False):
         super(Encoder, self).__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
