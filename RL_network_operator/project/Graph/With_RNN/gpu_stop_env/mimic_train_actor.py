@@ -115,7 +115,8 @@ def train(lr=0.001, num_iter=1000, num_episode=10, num_epoch=10, batch_size=32,\
     request_dim = 17
     obs_dim_2 = 10
     obs_dim = obs_dim_1+obs_dim_2*7
-    encoder = Encoder(input_size=request_dim, output_size=obs_dim_2)
+    encoder = Encoder(input_size=request_dim, output_size=obs_dim_2, \
+        use_rnn=False, use_gru=True, use_lstm=False)
     actor = Actor(obs_size=obs_dim, action_size=action_dim)
     actor.to(device=device)
     agent = Agent(actor=actor, encoder=encoder, obs_dim=obs_dim, action_dim=action_dim)

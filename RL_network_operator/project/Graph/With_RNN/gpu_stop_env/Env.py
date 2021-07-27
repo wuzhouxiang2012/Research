@@ -147,6 +147,8 @@ class Environment(gym.Env):
                         # service time for scale request
                         scale_service_time = \
                             np.random.exponential(request_type.switch_rate_list[1])
+                        if scale_service_time+prev_sum>service_time:
+                            scale_service_time = service_time-prev_sum
                         request_list.append(Request(id,request_type.source, \
                             request_type.sink, \
                             arrival_time+prev_sum, scale_bw, \
@@ -156,6 +158,8 @@ class Environment(gym.Env):
                     else:
                         lower_bw_service_time = \
                             np.random.exponential(request_type.switch_rate_list[0])
+                        if lower_bw_service_time+prev_sum>service_time:
+                            lower_bw_service_time = service_time-prev_sum
                         prev_sum += lower_bw_service_time
                         current_bandwidth = request_type.bandwidth_list[1]
         return request_list
