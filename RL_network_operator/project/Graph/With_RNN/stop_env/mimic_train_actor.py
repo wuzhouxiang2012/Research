@@ -89,12 +89,6 @@ def train(lr=0.001, num_iter=1000, num_episode=10, num_epoch=10, batch_size=32,\
     agent = Agent(actor=actor, obs_dim=obs_dim, action_dim=action_dim)
     if continue_train:
         agent.load(model_path)
-    
-    for name, param in agent.actor.named_parameters():
-        if param.requires_grad:
-            print (name)
-
-    exit()
     for iter in range(num_iter):
         #2.1  Using theta k to interact with the env
         # to collect {s_t, a_t} and compute advantage
@@ -129,18 +123,12 @@ def train(lr=0.001, num_iter=1000, num_episode=10, num_epoch=10, batch_size=32,\
         if iter%10 == 0:
             eval_reward= evaluate(evaluate_env_list_path, agent, render=False)  # render=True 查看显示效果
             print('itern:{}  Test reward:{}'.format(iter, eval_reward))
-            agent.save(model_path)
         agent.save(model_path)
 if __name__ == '__main__':
     train(lr=0.001, num_iter=1000, num_episode=10, num_epoch=10, batch_size=128,\
     evaluate_env_list_path='env_list_set1', \
-<<<<<<< HEAD
     train_total_time=60, show_baseline=True, \
-    continue_train=True, model_path = 'best_actor')
-=======
-    train_total_time=60, show_baseline=False, \
-    continue_train=False, model_path = 'best_actor')
->>>>>>> c03cac58c08f426a78614ba3a3ddd623767749ce
+    continue_train=True , model_path = 'best_actor')
 
 
 
