@@ -45,8 +45,6 @@ class Environment(gym.Env):
         self.static_rate = static_rate
         self.decrease_with_edge = decrease_with_edge
         self.make_edge_on_which_path_dict()
-
-    def reset(self):
         self.current_request:Request = None
         self.accepted_request_heap:list[Request] = None
         self.accepted_request_action_dict:Dict[str, int]= None
@@ -67,6 +65,9 @@ class Environment(gym.Env):
         self.accepted_request_heap = []
         self.accepted_request_action_dict = {}
         self.total_request_list.sort(key=lambda  x: x.arrival_stamp)
+        
+    def reset(self):
+        
         self.current_request = self.total_request_list.pop(0)
         return self.make_observation()
 
