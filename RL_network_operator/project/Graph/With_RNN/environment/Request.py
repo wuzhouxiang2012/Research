@@ -1,4 +1,4 @@
-from RequestType import RequestType
+from request_type import RequestType
 class Request:
     def __init__(self, id:str,source:int, sink:int, \
         arrival_stamp:float, bandwidth:float, \

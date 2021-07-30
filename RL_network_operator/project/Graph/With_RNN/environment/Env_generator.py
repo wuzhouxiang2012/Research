@@ -1,9 +1,8 @@
-from Env import Environment
+from env import Environment
 import pickle
 from typing import Dict, List
-from RequestType import RequestType
-from RequestType import RequestType
-from Util import evaluate_reject_when_full
+from request_type import RequestType
+from util import evaluate_reject_when_full
 '''
 id:int, source:int, sink:int, \
 arrival_rate:float, service_rate:float, \
@@ -84,26 +83,26 @@ def produce_test_env_list(NUM_ENV, path):
             node_num=node_num,\
             path_dict=path_dict, request_type_list=request_type_list,\
             total_time=total_time,\
-            punish_flag=True, valid_flag=False)
+            punish_flag=True, valid_flag=True)
         env_list.append(environment)
     filehandler = open(path,"wb")
     pickle.dump(env_list, filehandler)
     filehandler.close()
 
-def produce_env(total_time=600):
+def produce_env(total_time=600, punish_flag=True, valid_flag=False):
     environment = Environment(remain_dict=remain_dict, \
                 edge_sequence=edge_sequence,\
                 node_num=node_num,\
                 path_dict=path_dict, \
                 request_type_list=request_type_list,\
                 total_time=total_time,\
-                punish_flag=True, valid_flag=False 
+                punish_flag=punish_flag, valid_flag=valid_flag 
                 )
     return environment 
 
 if __name__ == '__main__':
     from Util import reject_when_full
-    # environment = produce_env(total_time=600)
+    # environment = produce_env(total_time=600, punish_flag=True, valid_flag=False)
     # print(reject_when_full(environment))
     produce_test_env_list(10, 'env_list_set2')
     print(evaluate_reject_when_full('env_list_set2'))

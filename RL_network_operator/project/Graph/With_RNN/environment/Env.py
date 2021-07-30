@@ -6,10 +6,10 @@ import random
 import math
 import heapq
 import copy
-from Util import kl_divergence
-from Request import Request
-from RequestType import RequestType
 from collections import OrderedDict
+
+from request import Request
+from request_type import RequestType
 
 class Environment(gym.Env):
     def __init__(self, remain_dict:Dict[str, int],\
@@ -343,7 +343,7 @@ class Environment(gym.Env):
                 hist_dist = self.elastic_hist_dist[self.current_request.type.id]
                 report_dist = self.current_request.type.distribution_list
                 # KL 
-                KL = kl_divergence(hist_dist,report_dist)
+                KL = util.kl_divergence(hist_dist,report_dist)
                 return -1.0*math.exp(-KL)*base_reward
 
     def valid_deploy(self, action):
