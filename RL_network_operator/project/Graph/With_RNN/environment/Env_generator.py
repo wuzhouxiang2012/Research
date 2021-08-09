@@ -101,7 +101,7 @@ def produce_env(total_time=600, punish_flag=True, valid_flag=False):
     return environment 
 
 if __name__ == '__main__':
-    from Util import reject_when_full
+    from util import reject_when_full
     # environment = produce_env(total_time=600, punish_flag=True, valid_flag=False)
     # print(reject_when_full(environment))
     produce_test_env_list(10, 'env_list_set2')

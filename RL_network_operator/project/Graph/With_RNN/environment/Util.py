@@ -84,7 +84,9 @@ def totally_random(env):
         if check_req_type(obs)==3:
             total_es += 1
 
-        choosed_action = random.choice([0,1,2,3])
+        choosed_action = random.choice([1,2,3])
+        if not env.valid_deploy(action=choosed_action):
+            choosed_action = 0
         if choosed_action != 0:
             accept+=1
             if check_req_type(obs)==1:
@@ -124,6 +126,8 @@ def _evaluate(env, agent):
             total_es += 1
 
         choosed_action = agent.predict(obs)
+        if choosed_action !=0 and not env.valid_deploy(action=choosed_action):
+            choosed_action = 0
         
         if choosed_action != 0:
             accept+=1

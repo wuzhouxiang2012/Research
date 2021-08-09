@@ -6,8 +6,10 @@ import torch.nn.functional as F
 import numpy as np
 import copy
 import random
-from Util import evaluate_reject_when_full, evaluate, evaluate_totally_random
-from Env_generator import produce_env
+import sys
+sys.path.append('.\environment')
+from util import evaluate_reject_when_full, evaluate, evaluate_totally_random
+from env_generator import produce_env
 from critic import Critic
 from encoder import Encoder
 
@@ -37,7 +39,7 @@ class ReplayMemory(object):
             done_batch.append(done)
 
         return  obs_batch, \
-                torch.from_numpy(np.array(action_batch)), \
+                torch.from_numpy(np.array(action_batch,dtype=np.int64)), \
                 torch.from_numpy(np.array(reward_batch).astype('float32')).view(-1,1),\
                 next_obs_batch,\
                 torch.from_numpy(np.array(done_batch).astype('float32'))
@@ -197,9 +199,9 @@ def train(show_baseline=False, continue_train=False, \
     learn_freq= 5, memory_size = 20000, total_time=20,\
     memory_warmup_size = 2000, batch_size = 32, critic_lr = 0.001, \
     encoder_lr=0.0001, gamma = 0.9, alpha = 0.9, max_episode=1000, \
-    critic_path='dqn_critic', encoder_path='dqn_encoder'):
+    critic_path='dqn_critic', encoder_path='dqn_encoder',\
+    evaluate_env_list_path = 'env_list_set1'):
     
-    evaluate_env_list_path = 'env_list_set1'
     if show_baseline:
         print(evaluate_reject_when_full(evaluate_env_list_path))
         print(evaluate_totally_random(evaluate_env_list_path))
@@ -244,8 +246,9 @@ def train(show_baseline=False, continue_train=False, \
     agent.save(critic_path=critic_path, encoder_path=encoder_path)
 
 if __name__ == '__main__':
-    train(show_baseline=False, continue_train=False, \
+    train(show_baseline=True, continue_train=False, \
     learn_freq= 5, memory_size = 20000, total_time=20,\
     memory_warmup_size = 2000, batch_size = 32, critic_lr = 0.001, \
     encoder_lr=0.0001, gamma = 0.9, alpha = 0.9, max_episode=1000, \
-    critic_path='dqn_critic', encoder_path='dqn_encoder')
+    critic_path='dqn_critic', encoder_path='dqn_encoder',\
+    evaluate_env_list_path = 'env_list_set2')

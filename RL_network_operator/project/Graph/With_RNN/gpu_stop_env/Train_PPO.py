@@ -4,9 +4,10 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import copy
 import random
-
-from Util import evaluate, evaluate_reject_when_full, evaluate_totally_random
-from Env_generator import produce_env
+import sys 
+sys.path.append('./environment')
+from util import evaluate, evaluate_reject_when_full, evaluate_totally_random
+from env_generator import produce_env
 from actor import Actor
 from encoder import Encoder
 
@@ -158,7 +159,7 @@ def run_episode(env, agent):
 def train(gamma = 0.9, base_line=0.5, actor_lr=0.001, \
     encoder_lr = 0.0001, epsilon=0.1, \
     num_iter=1000, num_episode=10, num_epoch=10, batch_size=128,\
-    evaluate_env_list_path='env_list_set1',\
+    evaluate_env_list_path='environment/env_list_set2',\
     train_total_time=600, show_baseline=False,\
     update_target_steps=200, encoder_path = 'ppo_encoder', \
     actor_path='ppo_actor', continue_train=False, \
@@ -171,7 +172,8 @@ def train(gamma = 0.9, base_line=0.5, actor_lr=0.001, \
     obs_dim_1 = 45  
     request_dim = 17
     obs_dim_2 = 10
-    obs_dim = obs_dim_1+obs_dim_2*7
+    num_edge = 7
+    obs_dim = obs_dim_1+obs_dim_2*num_edge
     encoder = Encoder(input_size=request_dim, output_size=obs_dim_2, \
         use_rnn=False, use_gru=True, use_lstm=False)
     actor = Actor(obs_size=obs_dim, action_size=action_dim)
@@ -213,18 +215,14 @@ def train(gamma = 0.9, base_line=0.5, actor_lr=0.001, \
             random.shuffle(indices)
             
             for i in range(0, num_examples, batch_size):
-                
-                if i+batch_size<len(all_obs):
-                    # print(indice[i:i+batch_size])
-                    batch_obs = [all_obs[x] for x in indices[i:i+batch_size]]
-                    batch_action = torch.tensor([all_action[x] for x in indices[i:i+batch_size]])
-                    batch_adv = torch.tensor([all_advantage[x] for x in indices[i:i+batch_size]])
-                else:
-                    batch_obs = [all_obs[x] for x in indices[i:num_examples]]
-                    batch_action = torch.tensor([all_action[x] for x in indices[i:num_examples]])
-                    batch_adv = torch.tensor([all_advantage[x] for x in indices[i:num_examples]])
-
-                
+                # print(indice[i:i+batch_size])
+                batch_obs = [all_obs[x] for x in indices[i:i+batch_size]]
+                batch_action = torch.tensor([all_action[x] for \
+                    x in indices[i:min(num_examples, i+batch_size)]], \
+                        dtype=torch.int64)
+                batch_adv = torch.tensor([all_advantage[x] for \
+                    x in indices[i:min(num_examples, i+batch_size)]], \
+                        dtype=torch.float32)
                 agent.learn(batch_obs, batch_action, batch_adv)
         if iter%10 == 0:
             eval_reward= evaluate(evaluate_env_list_path, agent, render=False)  # render=True 查看显示效果
@@ -236,8 +234,8 @@ if __name__ == '__main__':
     train(gamma = 0.9, base_line=0.5, actor_lr=0.001, \
     encoder_lr = 0.0001, epsilon=0.1, \
     num_iter=1000, num_episode=10, num_epoch=10, batch_size=128,\
-    evaluate_env_list_path='env_list_set1',\
-    train_total_time=20, show_baseline=True,\
+    evaluate_env_list_path='env_list_set2',\
+    train_total_time=20, show_baseline=False,\
     update_target_steps=200, encoder_path = 'ppo_encoder', \
-    actor_path='ppo_actor', continue_train=True, \
+    actor_path='ppo_actor', continue_train=False, \
     save_train=True)

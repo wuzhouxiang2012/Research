@@ -7,9 +7,9 @@ import math
 import heapq
 import copy
 from collections import OrderedDict
-
 from request import Request
 from request_type import RequestType
+from util import kl_divergence
 
 class Environment(gym.Env):
     def __init__(self, remain_dict:Dict[str, int],\
@@ -186,7 +186,7 @@ class Environment(gym.Env):
                         self.edge_on_which_path[edge][source_sink_pair].append(1)
                     else:
                         self.edge_on_which_path[edge][source_sink_pair].append(0)
-        # print(self.edge_on_which_path)
+        
     def make_observation(self):
         # edge state
         # edge - remain bd dict to list
@@ -211,6 +211,17 @@ class Environment(gym.Env):
                     (1,1,self.req_encode_size),dtype=np.float32))
             else:
                 obs_part2.append(self.transform_list(request_list))
+        # for edge in self.edge_sequence:
+        #     request_list = self.request_in_edge[edge]
+        #     if len(request_list)==0:
+        #         continue
+        #     else:
+        #         obs_part2+=request_list
+        # if len(obs_part2)==0:
+        #     obs_part2 = np.zeros((1,1,self.req_encode_size),dtype=np.float32)
+        # else:
+        #     obs_part2 = self.transform_list(obs_part2)
+
         return obs_part1, obs_part2
         # return obs_part1
 
@@ -223,9 +234,9 @@ class Environment(gym.Env):
         cur_req_encode[self.node_num*2]=req.bandwidth
         cur_req_encode[self.node_num*2+1]=req.service_time
 
-        if self.current_request.type.isStatic:
+        if req.type.isStatic:
             cur_req_encode[self.node_num*2+1+1+0] = 1 
-        elif self.current_request.isScale:
+        elif req.isScale:
             cur_req_encode[self.node_num*2+1+1+1] = 1
         else:
             cur_req_encode[self.node_num*2+1+1+2] = 1
@@ -265,7 +276,7 @@ class Environment(gym.Env):
             else:
                 self.deactivate_all_following_elastic()
                 if self.punish_flag:
-                    reward *= -10.0 
+                    reward *= -1.
                 else:
                     reward = 0
                     finished = True
@@ -280,10 +291,14 @@ class Environment(gym.Env):
 
         # update current request
         request = self.total_request_list.pop(0)
-        while not request.isActivate:
+        while not request.isActivate and len(self.total_request_list)>0:
             request = self.total_request_list.pop(0)
         self.current_request = request
 
+        if len(self.total_request_list)<=1:
+            finished = True
+            return self.make_observation(), reward, finished, {}
+            
         # pop out all leaved request
         while len(self.accepted_request_heap)>0 and \
             self.accepted_request_heap[0].leave_stamp<self.current_request.arrival_stamp:
@@ -343,7 +358,7 @@ class Environment(gym.Env):
                 hist_dist = self.elastic_hist_dist[self.current_request.type.id]
                 report_dist = self.current_request.type.distribution_list
                 # KL 
-                KL = util.kl_divergence(hist_dist,report_dist)
+                KL = kl_divergence(hist_dist,report_dist)
                 return -1.0*math.exp(-KL)*base_reward
 
     def valid_deploy(self, action):

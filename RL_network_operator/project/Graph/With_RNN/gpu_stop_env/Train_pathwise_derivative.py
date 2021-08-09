@@ -5,8 +5,8 @@ from torch import nn
 import numpy as np
 import copy
 import torch.nn.functional as F
-from Util import evaluate_totally_random, evaluate, evaluate_reject_when_full
-from Env_generator import produce_env
+from util import evaluate_totally_random, evaluate, evaluate_reject_when_full
+from env_generator import produce_env
 from encoder import Encoder
 from actor import Actor
 from critic import Critic
