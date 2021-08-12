@@ -53,13 +53,14 @@ class Environment(gym.Env):
     # create a new request list and set of params
     def create_new_param(self):
         self.current_request:Request = None
-        self.accepted_request_heap:list[Request] = None
-        self.accepted_request_action_dict:Dict[str, int]= None
+        self.accepted_request_heap:list[Request] = []
+        self.accepted_request_action_dict:Dict[str, int]= {}
         self.remain_dict = copy.deepcopy(self.original_remain_dict)
         self.elastic_hist_dist:Dict[str, List[float]] = {}
         self.elastic_hist_list:Dict[str, List[Request]] = {}
         self.elastic_hist_sum:Dict[str, List[float]] = {}
 
+        self.elastic_initial_action_dict:Dict[str,int] = {}
         # request in queue
         self.request_in_edge:Dict[str, List[Request]] = {}
         for edge in self.edge_sequence:
@@ -69,8 +70,6 @@ class Environment(gym.Env):
         self.total_request_list:list[Request] = []
         self.initialize_elastic_history()
         self.initialize_all_request()
-        self.accepted_request_heap = []
-        self.accepted_request_action_dict = {}
         self.total_request_list.sort(key=lambda  x: x.arrival_stamp)
 
     def reset(self):
@@ -222,7 +221,7 @@ class Environment(gym.Env):
         # else:
         #     obs_part2 = self.transform_list(obs_part2)
 
-        return obs_part1, obs_part2
+        return obs_part1, obs_part2, self.current_request
         # return obs_part1
 
     def req_2_vector(self, req:Request):
@@ -263,10 +262,11 @@ class Environment(gym.Env):
 
     def step(self, action):
         finished = False
-        # if self.current_request.isScale:
-        #     self.update_elastic_history()
         if not self.current_request.type.isStatic:
             self.update_elastic_history()
+        # if self.current_request.isScale:
+        #     self.update_elastic_history()
+
         # accpet
         reward = self.reward(action)
         if action != 0:
@@ -361,7 +361,7 @@ class Environment(gym.Env):
                 report_dist = self.current_request.type.distribution_list
                 # KL 
                 KL = kl_divergence(hist_dist,report_dist)
-                # print(math.exp(-KL))
+                print(math.exp(-KL))
                 return -1.0*math.exp(-KL)*base_reward
 
     def valid_deploy(self, action):

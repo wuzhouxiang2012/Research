@@ -261,5 +261,8 @@ def evaluate_totally_random(env_list_path):
         np.sum(acc_es_list)/np.sum(total_es_list)
 
 
+# def test_scale_request(env, request):
+#     request.id 
+#     env.valid_deploy(action=choosed_action)
 if __name__ == '__main__':
-    print(evaluate_totally_random('env_list_set1'))
+    print(evaluate_reject_when_full('env_list_set2'))

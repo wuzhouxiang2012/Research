@@ -153,6 +153,9 @@ def run_episode(env, agent):
         if done:
             break
         obs = next_obs
+    obs_list.pop()
+    action_list.pop()
+    reward_list.pop()
     return obs_list, action_list, reward_list
 
 
