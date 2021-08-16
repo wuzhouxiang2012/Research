@@ -52,7 +52,9 @@ class Agent():
                  encoder,
                  obs_dim,
                  action_dim,
-                 lr = 0.001,
+                 actor_lr,
+                 critic_lr,
+                 encoder_lr,
                  gamma=0.9,
                  alpha = 0.9,
                  update_target_steps=200):
@@ -69,9 +71,9 @@ class Agent():
         self.alpha = alpha
         # every 200 training steps, coppy model param into target_model
         self.update_target_steps = update_target_steps  
-        self.optimizer_actor = torch.optim.Adam(actor.parameters(), lr=lr)
-        self.optimizer_critic = torch.optim.Adam(critic.parameters(), lr=lr)
-        self.otpimizer_encoder = torch.optim.Adam(encoder.parameters(), lr=lr)
+        self.optimizer_actor = torch.optim.Adam(actor.parameters(), lr=actor_lr)
+        self.optimizer_critic = torch.optim.Adam(critic.parameters(), lr=critic_lr)
+        self.otpimizer_encoder = torch.optim.Adam(encoder.parameters(), lr=encoder_lr)
         self.criteria_critic = nn.MSELoss()
     
     def sample(self, obs):
@@ -253,9 +255,10 @@ def train(show_baseline=False, continue_train=False, continue_mimic=False,\
     mimic_actor_path = 'mimic_actor', mimic_encoder_path = 'mimic_encoder',\
     learn_freq= 5, memory_size = 20000, total_time=600,\
     memory_warmup_size = 2000, batch_size = 32, learning_rate = 0.001, \
-    gamma = 0.9, alpha = 0.9, max_episode=1000, update_target_steps=200):
+    gamma = 0.9, alpha = 0.9, max_episode=1000, update_target_steps=200, \
+    evaluate_env_list_path = 'env_list_set2',\):
     
-    evaluate_env_list_path = 'env_list_set1'
+    
     if show_baseline:
         print(evaluate_reject_when_full(evaluate_env_list_path))
         print(evaluate_totally_random(evaluate_env_list_path))

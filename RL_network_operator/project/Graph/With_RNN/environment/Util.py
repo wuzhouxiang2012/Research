@@ -264,5 +264,6 @@ def evaluate_totally_random(env_list_path):
 # def test_scale_request(env, request):
 #     request.id 
 #     env.valid_deploy(action=choosed_action)
-if __name__ == '__main__':
-    print(evaluate_reject_when_full('env_list_set2'))
+# if __name__ == '__main__':
+    # from env_copy import Environment
+    # print(evaluate_reject_when_full('env_list_set2'))
